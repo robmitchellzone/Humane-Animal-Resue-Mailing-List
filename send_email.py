@@ -2,8 +2,10 @@ import json
 import boto3
 import requests
 from bs4 import BeautifulSoup
-from soup import get_dog_details
+from scrape_site import get_dog_details
 
+
+ses = boto3.client('ses')
 
 text_part = """
 {{#dogs}}
@@ -59,7 +61,8 @@ def update_template(ses):
     ses.update_template(Template=template)
 
 
-def send_email(recipient: str, dogs: dict):
+def send_email(recipient: str, dogs: list):
+    dogs = {'dogs': dogs}
     source = 'Rob Mitchell <rob.mitchellzone@gmail.com>'
     template_send_args = {
         'Source': source,
@@ -76,13 +79,10 @@ if __name__ == '__main__':
         'https://humaneanimalrescue.org/animals/agatha-92133/',
         'https://humaneanimalrescue.org/animals/augustus-92932/'
     ]
-    dogs = {'dogs': []}
+    dogs = []
     for url in urls:
         r = requests.get(url)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        dog = get_dog_details(soup)
-        dogs['dogs'].append(dog)
-    
-    ses = boto3.client('ses')
+        dogs.append(get_dog_details(BeautifulSoup(r.text, 'html.parser')))
+
     recipient = 'rob.mitchellzone@gmail.com'
     send_email(recipient, dogs)
