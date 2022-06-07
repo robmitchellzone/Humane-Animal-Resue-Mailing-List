@@ -2,63 +2,10 @@ import json
 import boto3
 import requests
 from bs4 import BeautifulSoup
-from scrape_site import get_dog_details
+from source.scrape_site import get_dog_details
 
 
 ses = boto3.client('ses')
-
-text_part = """
-{{#dogs}}
-{{headshot}}
-{{name}}
-{{breed}}
-{{sex}}
-{{age}}
-{{weight}}
-{{description}}
-{{#pictures}}
-{{this}}
-{{/pictures}}
-{{/dogs}}
-"""
-
-html_part = """
-<head>
-    <style>
-        img {
-            max-height:300px;
-            max-width:300px;
-            height:auto;
-            width:auto; 
-        }
-    </style>
-</head>
-{{#dogs}}
-    <img src="{{headshot}}" alt="{{name}}'s headshot">
-    <h1>{{name}}</h1>
-    <ul>
-        <li>{{breed}}</li>
-        <li>{{sex}}</li>
-        <li>{{age}}</li>
-        <li>{{weight}}</li>
-    </ul>
-    <p>{{description}}</p>
-    {{#pictures}}
-        <img src="{{this}}" alt="A picture of {{name}}">
-    {{/pictures}}
-    <hr>
-{{/dogs}}
-"""
-
-
-def update_template(ses):
-    template = {
-        'TemplateName': 'dog_template',
-        'SubjectPart': 'There are new dogs for you to view!',
-        'TextPart': text_part,
-        'HtmlPart': html_part,
-    }
-    ses.update_template(Template=template)
 
 
 def send_email(recipient: str, dogs: list):

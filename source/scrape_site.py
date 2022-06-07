@@ -58,7 +58,7 @@ def load_old_dogs(fpath: str) -> dict:
         return {}
 
 
-def compare_dogs(all_dogs: dict, old_dogs: dict) -> list:
+def compare_dogs(all_dogs: dict, old_dogs: dict) -> tuple:
     """Given a list of all dogs and old dogs, return a list of new dogs."""
     old_dog_ids = [dog['id'] for dog in old_dogs]
     new_dogs = []
@@ -71,18 +71,21 @@ def compare_dogs(all_dogs: dict, old_dogs: dict) -> list:
         details_page = BeautifulSoup(r.text, 'html.parser')
         detailed_dog = get_dog_details(details_page)
         detailed_dogs.append(detailed_dog)
-    return detailed_dogs
+    return new_dogs, detailed_dogs
 
 
-def get_new_dogs() -> list:
+def get_new_dogs() -> tuple:
+    """Get a list of new dogs from the main page.
+    :return: tuple of new dogs and detailed dogs
+    """
     r = requests.get('https://humaneanimalrescue.org/adopt/?_type=dog')
     main_page = BeautifulSoup(r.text, 'html.parser')
     all_dogs = list_dogs(main_page)
     old_dogs = load_old_dogs('data/dogs.json')
-    new_dogs = compare_dogs(all_dogs, old_dogs)
-    return new_dogs
+    new_dogs, dog_details = compare_dogs(all_dogs, old_dogs)
+    return new_dogs, dog_details
 
 
 if __name__ == '__main__':
-    dog_details = get_new_dogs()
+    _, dog_details = get_new_dogs()
     print(f'There are {len(dog_details)} new dogs!')
