@@ -1,5 +1,7 @@
+import json
+
 import requests
-import bs4 as BeautifulSoup
+from bs4 import BeautifulSoup
 
 
 def list_dogs(soup: BeautifulSoup) -> list:
@@ -46,13 +48,41 @@ def get_dog_details(soup: BeautifulSoup) -> dict:
     return dog_details
 
 
-if __name__ == '__main__':
-    url = 'https://humaneanimalrescue.org/adopt/?_type=dog'
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    current_dogs = list_dogs('https://humaneanimalrescue.org/adopt/?_type=dog')
+def load_old_dogs(fpath: str) -> dict:
+    """Try to load old dogs from file."""
+    try:
+        with open(fpath, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print('No old dogs file found.')
+        return {}
 
-    url = 'https://humaneanimalrescue.org/animals/agatha-92133/'
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    dog_details = get_dog_details(soup)
+
+def compare_dogs(all_dogs: dict, old_dogs: dict) -> list:
+    """Given a list of all dogs and old dogs, return a list of new dogs."""
+    old_dog_ids = [dog['id'] for dog in old_dogs]
+    new_dogs = []
+    for dog in all_dogs:
+        if dog['id'] not in old_dog_ids:
+            new_dogs.append(dog)
+    detailed_dogs = []
+    for dog in new_dogs:
+        r = requests.get(dog['url'])
+        details_page = BeautifulSoup(r.text, 'html.parser')
+        detailed_dog = get_dog_details(details_page)
+        detailed_dogs.append(detailed_dog)
+    return detailed_dogs
+
+
+def get_new_dogs() -> list:
+    r = requests.get('https://humaneanimalrescue.org/adopt/?_type=dog')
+    main_page = BeautifulSoup(r.text, 'html.parser')
+    all_dogs = list_dogs(main_page)
+    old_dogs = load_old_dogs('data/dogs.json')
+    new_dogs = compare_dogs(all_dogs, old_dogs)
+    return new_dogs
+
+
+if __name__ == '__main__':
+    dog_details = get_new_dogs()
+    print(f'There are {len(dog_details)} new dogs!')
