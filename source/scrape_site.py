@@ -1,8 +1,10 @@
 import json
+import logging
 
 import requests
 from bs4 import BeautifulSoup
 
+logging.basicConfig(filename='har/log.log')
 
 def list_dogs(soup: BeautifulSoup) -> list:
     """
@@ -32,9 +34,13 @@ def get_dog_details(soup: BeautifulSoup) -> dict:
     """
     dog_details = {}
 
-    details = soup.find('div', attrs={'class': 'animal-copy'}).contents
-    pics = soup.find('div', attrs={'class': 'animal-photos'})('img')
-    
+    try:
+        details = soup.find('div', attrs={'class': 'animal-copy'}).contents
+        pics = soup.find('div', attrs={'class': 'animal-photos'})('img')
+    except AttributeError as e:
+        logging.debug(soup.prettify())
+        raise e
+
     translator = str.maketrans({chr(10): '', chr(9): ''})  # Remove \n and \t
     
     dog_details['headshot'] = pics[0].attrs['src'].strip()
@@ -68,6 +74,10 @@ def compare_dogs(all_dogs: dict, old_dogs: dict) -> tuple:
     detailed_dogs = []
     for dog in new_dogs:
         r = requests.get(dog['url'])
+        if r.status_code == '200':
+            logging.debug(r.text)
+        else:
+            logging.debug(r.status_code)
         details_page = BeautifulSoup(r.text, 'html.parser')
         detailed_dog = get_dog_details(details_page)
         detailed_dogs.append(detailed_dog)

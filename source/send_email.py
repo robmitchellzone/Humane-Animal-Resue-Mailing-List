@@ -1,14 +1,20 @@
 import json
+
 import boto3
+from botocore.config import Config
 import requests
 from bs4 import BeautifulSoup
-from source.scrape_site import get_dog_details
+
+from scrape_site import get_dog_details
 
 
-ses = boto3.client('ses')
+my_config = Config(
+    region_name = 'us-east-2'
+)
+ses = boto3.client('ses', config=my_config)
 
 
-def send_email(recipient: str, dogs: list):
+def send_dog_email(recipient: str, dogs: list):
     dogs = {'dogs': dogs}
     source = 'Rob Mitchell <rob.mitchellzone@gmail.com>'
     template_send_args = {
@@ -19,6 +25,31 @@ def send_email(recipient: str, dogs: list):
         'ConfigurationSetName': 'email_failures_to_rob'
     }
     ses.send_templated_email(**template_send_args)
+
+
+def send_no_dog_email(recipient: str):
+    source = 'Rob Mitchell <rob.mitchellzone@gmail.com>'
+    ses.send_email(
+        Source=source,
+        Destination={'ToAddresses': [recipient]},
+        Message={
+            'Subject': {
+                'Data': 'There are no new dogs for you to view :('
+            },
+            'Body': {
+                'Text': {
+                    'Data': """Sorry, there are no new dogs for you to view
+                            today. We'll send you another email tomorrow!"""
+                },
+                'Html': {
+                    'Data': """<p>Sorry, there are no new dogs for you to view
+                            today. We'll send you another email tomorrow!</p>
+                            """
+                }
+            },
+        },
+        ConfigurationSetName='email_failures_to_rob'
+    )
 
 
 if __name__ == '__main__':
@@ -32,4 +63,4 @@ if __name__ == '__main__':
         dogs.append(get_dog_details(BeautifulSoup(r.text, 'html.parser')))
 
     recipient = 'rob.mitchellzone@gmail.com'
-    send_email(recipient, dogs)
+    send_dog_email(recipient, dogs)

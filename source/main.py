@@ -1,17 +1,27 @@
-from source.scrape_site import get_new_dogs
-from source.send_email import send_email
+import os
 import json
+
+from scrape_site import get_new_dogs
+from send_email import send_dog_email, send_no_dog_email
 
 
 def save_dogs(new_dogs):
-    with open('data/dogs.json', 'r') as f:
-        old_dogs = json.load(f)
+    try:
+        with open('data/dogs.json', 'r') as f:
+            old_dogs = json.load(f)
+    except FileNotFoundError:
+        os.mkdir('data')
+        old_dogs = []
     old_dogs.extend(new_dogs)
+    print(f'Saving {len(new_dogs)} new dogs')
     with open('data/dogs.json', 'w') as f:
         json.dump(old_dogs, f, indent=4)
 
 
 if __name__ == '__main__':
     new_dogs, dog_details = get_new_dogs()
-    send_email('rob.mitchellzone@gmail.com', dog_details)
-    save_dogs(new_dogs)
+    if dog_details:
+        send_dog_email('rob.mitchellzone@gmail.com', dog_details)
+        save_dogs(new_dogs)
+    else:
+        send_no_dog_email('rob.mitchellzone@gmail.com')
