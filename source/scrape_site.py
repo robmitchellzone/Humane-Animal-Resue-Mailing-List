@@ -1,10 +1,13 @@
+import os
 import json
 import logging
 
 import requests
 from bs4 import BeautifulSoup
 
-logging.basicConfig(filename='har/log.log')
+logging.basicConfig(filename='log.log')
+DOG_FILE = os.getenv('DOG_FILE')
+
 
 def list_dogs(soup: BeautifulSoup) -> list:
     """
@@ -91,7 +94,7 @@ def get_new_dogs() -> tuple:
     r = requests.get('https://humaneanimalrescue.org/adopt/?_type=dog')
     main_page = BeautifulSoup(r.text, 'html.parser')
     all_dogs = list_dogs(main_page)
-    old_dogs = load_old_dogs('data/dogs.json')
+    old_dogs = load_old_dogs(DOG_FILE)
     new_dogs, dog_details = compare_dogs(all_dogs, old_dogs)
     return new_dogs, dog_details
 

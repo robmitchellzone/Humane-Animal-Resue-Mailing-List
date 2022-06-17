@@ -1,3 +1,4 @@
+import os
 import json
 
 import boto3
@@ -8,6 +9,8 @@ from bs4 import BeautifulSoup
 from scrape_site import get_dog_details
 
 
+SENDER_EMAIL = os.getenv('SENDER_EMAIL')
+
 my_config = Config(
     region_name = 'us-east-2'
 )
@@ -16,7 +19,7 @@ ses = boto3.client('ses', config=my_config)
 
 def send_dog_email(recipient: str, dogs: list):
     dogs = {'dogs': dogs}
-    source = 'Rob Mitchell <rob.mitchellzone@gmail.com>'
+    source = f'Rob Mitchell <{SENDER_EMAIL}>'
     template_send_args = {
         'Source': source,
         'Destination': {'ToAddresses': [recipient]},
@@ -28,7 +31,7 @@ def send_dog_email(recipient: str, dogs: list):
 
 
 def send_no_dog_email(recipient: str):
-    source = 'Rob Mitchell <rob.mitchellzone@gmail.com>'
+    source = f'Rob Mitchell <{SENDER_EMAIL}>'
     ses.send_email(
         Source=source,
         Destination={'ToAddresses': [recipient]},
@@ -62,5 +65,5 @@ if __name__ == '__main__':
         r = requests.get(url)
         dogs.append(get_dog_details(BeautifulSoup(r.text, 'html.parser')))
 
-    recipient = 'rob.mitchellzone@gmail.com'
+    recipient = SENDER_EMAIL
     send_dog_email(recipient, dogs)
