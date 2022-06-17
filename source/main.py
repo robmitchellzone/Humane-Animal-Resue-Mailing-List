@@ -4,7 +4,7 @@ import json
 from scrape_site import get_new_dogs
 from send_email import send_dog_email, send_no_dog_email
 
-RECIPIENT_EMAIL = os.getenv('RECIPIENT_EMAIL')
+RECIPIENT_EMAILS = os.getenv('RECIPIENT_EMAILS').split(', ')
 DOG_FILE = os.getenv('DOG_FILE')
 
 
@@ -24,7 +24,7 @@ def save_dogs(new_dogs):
 if __name__ == '__main__':
     new_dogs, dog_details = get_new_dogs()
     if dog_details:
-        send_dog_email(RECIPIENT_EMAIL, dog_details)
+        send_dog_email(RECIPIENT_EMAILS, dog_details)
         save_dogs(new_dogs)
     else:
-        send_no_dog_email(RECIPIENT_EMAIL)
+        send_no_dog_email(RECIPIENT_EMAILS)

@@ -17,12 +17,12 @@ my_config = Config(
 ses = boto3.client('ses', config=my_config)
 
 
-def send_dog_email(recipient: str, dogs: list):
+def send_dog_email(recipients: list, dogs: list):
     dogs = {'dogs': dogs}
     source = f'Rob Mitchell <{SENDER_EMAIL}>'
     template_send_args = {
         'Source': source,
-        'Destination': {'ToAddresses': [recipient]},
+        'Destination': {'ToAddresses': recipients},
         'Template': 'dog_template',
         'TemplateData': json.dumps(dogs),
         'ConfigurationSetName': 'email_failures_to_rob'
@@ -30,11 +30,11 @@ def send_dog_email(recipient: str, dogs: list):
     ses.send_templated_email(**template_send_args)
 
 
-def send_no_dog_email(recipient: str):
+def send_no_dog_email(recipients: list):
     source = f'Rob Mitchell <{SENDER_EMAIL}>'
     ses.send_email(
         Source=source,
-        Destination={'ToAddresses': [recipient]},
+        Destination={'ToAddresses': recipients},
         Message={
             'Subject': {
                 'Data': 'There are no new dogs for you to view :('
