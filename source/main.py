@@ -4,7 +4,7 @@ import json
 from scrape_site import get_new_dogs
 from send_email import send_dog_email, send_no_dog_email
 
-RECIPIENT_EMAIL = os.getenv('SENDER_EMAIL')  # For development only
+RECIPIENT_EMAIL = os.getenv('RECIPIENT_EMAIL')
 DOG_FILE = os.getenv('DOG_FILE')
 
 
