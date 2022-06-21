@@ -38,7 +38,7 @@ To write a new cronjob:
 
 The cronjob text:
 
-        0 7 * * * pipenv run python har/source/main.py >> ~/cronjob_log.txt
+        0 7 * * * cd har && pipenv run python source/main.py >> ~/cronjob_log.txt
 
 To exit vim:
 
