@@ -19,7 +19,14 @@ def list_dogs(soup: BeautifulSoup) -> list:
     dogs = []
     dog_pages = [result.attrs['href'] for result in results]
     for dog_page in dog_pages:
-        dog_name, dog_id = dog_page.split('/')[-2].split('-')
+        dog_name_id = dog_page.split('/')[-2].split('-')
+        try:
+            dog_name, dog_id = dog_name_id
+        except ValueError:
+            logging.debug("The dog name and ID portion of the URL has too "
+                              f"many dashes in it: {dog_name_id}")
+            dog_id = dog_name_id[-1]
+            dog_name = '-'.join(dog_name_id[:-1])
         entry = {
             'id': dog_id,
             'name': dog_name,
